@@ -1,82 +1,29 @@
-pages: 2
+pages: 1
 
 Monthly Operations Report
-
 Platform reliability and usage Your Company
 
 
-PERIOD PREPARED FOR GENERATED
-February 2026 Northwind Trading Ltd. 1 March 2026
 
+PERIOD PREPARED FOR GENERATED
+
+February 2026 Northwind Trading Ltd. 1 March 2026
 
 
  REQUESTS P95 LATENCY ERROR RATE UPTIME
 
- 48.2M +12% 184 ms -9% 0.043% 99.98%
- +0.01pp
+ 48.2M 184 ms 0.043% 99.98%
+
+ +12% -9% +0.01pp
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Your Company Page 1 of 2
-
---- page break ---
 
 Traffic by service
 
  SERVICE REQUESTS P95 ERRORS
 
  Checkout API 18,402,113 142 ms 0.02%
-
 
  Catalogue 14,880,204 96 ms 0.01%
 
@@ -93,11 +40,10 @@ Requests by week
 
 Week 1 10.8M
 
-
 Week 2 11.9M
 
-Week 3 12.4M
 
+Week 3 12.4M
 
 Week 4 13.1M
 
@@ -115,23 +61,16 @@ duced by a third-party integration; a query timeout has since been added.
 
 
 
-
 Actions for next month
-Reporting remains the slowest service at a p95 of 884 ms. The team will move its aggregate queries onto
 
+Reporting remains the slowest service at a p95 of 884 ms. The team will move its aggregate queries onto
 the read replica and revisit the index on the events table.
 
 Error rate rose slightly, entirely within the webhooks service. The retry policy will be changed from fixed
+
 to exponential backoff.
 
 
 
 
-
-
-
-
-
-
-
-Your Company Page 2 of 2
+Your Company Page 1 of 1

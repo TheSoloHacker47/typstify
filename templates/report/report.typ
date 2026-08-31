@@ -28,7 +28,6 @@
   gutter: 10pt,
   ..data.metrics.map(metric => block(
     width: 100%,
-    height: 100%,
     fill: rgb("#f9fafb"),
     stroke: 0.5pt + brand.rule,
     radius: 3pt,
@@ -37,8 +36,13 @@
     #text(size: 8pt, fill: brand.muted)[#upper(metric.label)]
     #linebreak()
     #text(size: 18pt, weight: "semibold")[#metric.value]
-    #if metric.at("change", default: none) != none [
-      #h(4pt)
+    #linebreak()
+    // Always a third line, present or not, so the cards line up. `height: 100%`
+    // is the obvious alternative and the wrong one: inside a grid it resolves
+    // against the page, not the row, and pushes the whole report onto page two.
+    #if metric.at("change", default: none) == none [
+      #text(size: 9pt)[ ]
+    ] else [
       #text(size: 9pt, fill: if metric.at("positive", default: true) {
         rgb("#047857")
       } else {
