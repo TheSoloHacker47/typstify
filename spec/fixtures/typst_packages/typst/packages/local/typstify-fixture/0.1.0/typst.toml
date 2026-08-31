@@ -1,0 +1,7 @@
+[package]
+name = "typstify-fixture"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Typstify"]
+license = "MIT"
+description = "Fixture package proving that a vendored package resolves with no network."

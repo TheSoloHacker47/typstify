@@ -1,0 +1,13 @@
+{
+  "eyebrow": "Certificate of Completion",
+  "title": "Advanced Rails Performance",
+  "presented_to_label": "This is to certify that",
+  "recipient": "Ada Okonkwo",
+  "description": "has successfully completed the twelve-week programme covering query optimisation, caching strategy, background processing and production profiling, including all assessed exercises.",
+  "signatories": [
+    { "name": "Priya Raman", "role": "Programme Director" },
+    { "name": "Tom Whelan", "role": "Lead Instructor" }
+  ],
+  "issued_on": "18 June 2026",
+  "reference": "Certificate no. CRT-00412"
+}

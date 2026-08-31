@@ -1,0 +1,86 @@
+plugins:
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "gemfiles/**/*"
+    - "spec/dummy/tmp/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+
+# The bundler gem template, and every file here, uses double quotes.
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Max: 110
+  Exclude:
+    - "spec/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "*.gemspec"
+    - "Rakefile"
+    - "lib/tasks/*.rake"
+
+Metrics/MethodLength:
+  Max: 25
+
+Metrics/AbcSize:
+  Max: 25
+
+Metrics/ModuleLength:
+  Max: 150
+
+Style/Documentation:
+  Enabled: true
+
+# Security specs and template-pack specs describe behaviour, not one class.
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 6
+
+RSpec/NestedGroups:
+  Max: 4
+
+# Keyword arguments are the API here; counting them as positional parameters
+# argues for worse signatures.
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+# The PDF standard names are the standards' own: PDF/A-2b, PDF/UA-1.
+Naming/VariableNumber:
+  AllowedIdentifiers:
+    - pdf_1_7
+    - pdf_2_0
+    - a_1b
+    - a_2b
+    - a_3b
+    - a_4
+    - ua_1
+
+# Data.normalize is an eight-branch type dispatch. Splitting it would spread
+# one decision across several methods.
+Metrics/CyclomaticComplexity:
+  Max: 8
+
+# These are command-line scripts that happen to live under spec/.
+RSpec/Output:
+  Exclude:
+    - "spec/support/regenerate_goldens.rb"
+    - "spec/support/render_previews.rb"

@@ -1,0 +1,17 @@
+{
+  "number": "RCP-8871",
+  "subtitle": "No payment is due",
+  "paid_on": "3 February 2026",
+  "method": "Visa ending 4242",
+  "total": "$1,290.00",
+  "received_from": ["Ada Okonkwo", "Harbour Analytics", "Dublin, Ireland"],
+  "line_items": [
+    { "name": "Annual plan", "qty": "1", "amount": "$1,200.00" },
+    { "name": "Extra storage (50 GB)", "qty": "1", "amount": "$90.00" }
+  ],
+  "summary": [
+    { "label": "Subtotal", "value": "$1,290.00" },
+    { "label": "Tax", "value": "$0.00" }
+  ],
+  "notes": "Keep this receipt for your records. Questions? Reply to your confirmation email."
+}

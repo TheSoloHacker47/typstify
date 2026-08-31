@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+echo "==> bundle install"
+bundle install
+
+echo
+echo "==> checking the Typst binding"
+bundle exec ruby -e 'require "typst"; Typst(body: "= ok").compile(:pdf); puts "typst binding OK"'
+
+echo
+echo "Ready. Run the suite with:  bundle exec rake"

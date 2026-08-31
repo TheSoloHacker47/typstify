@@ -1,0 +1,21 @@
+{
+  "number": "INV-2043",
+  "subtitle": "Thanks for your business",
+  "issued_on": "12 March 2026",
+  "due_on": "11 April 2026",
+  "total": "$4,860.00",
+  "bill_to": ["Northwind Trading Ltd.", "48 Harbour Road", "Bristol BS1 5TY", "United Kingdom"],
+  "bill_from": ["Your Company", "12 Example Street", "London EC1A 1AA", "VAT GB123456789"],
+  "line_items": [
+    { "name": "Platform subscription — March", "qty": "1", "unit_price": "$2,400.00", "amount": "$2,400.00" },
+    { "name": "Additional seats", "qty": "12", "unit_price": "$95.00", "amount": "$1,140.00" },
+    { "name": "Onboarding workshop", "qty": "4", "unit_price": "$210.00", "amount": "$840.00" },
+    { "name": "Priority support", "qty": "1", "unit_price": "$480.00", "amount": "$480.00" }
+  ],
+  "summary": [
+    { "label": "Subtotal", "value": "$4,860.00" },
+    { "label": "VAT (0%)", "value": "$0.00" },
+    { "label": "Paid to date", "value": "$0.00" }
+  ],
+  "notes": "Payment by bank transfer within 30 days. Quote invoice number INV-2043 as the reference."
+}

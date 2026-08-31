@@ -1,0 +1,80 @@
+pages: 1
+
+Invoice INV-2043
+
+Thanks for your business Your Company
+
+
+
+ISSUED DUE AMOUNT DUE
+12 March 2026 11 April 2026 $4,860.00
+
+
+BILLED TO FROM
+
+Northwind Trading Ltd. Your Company
+48 Harbour Road 12 Example Street
+Bristol BS1 5TY London EC1A 1AA
+
+United Kingdom VAT GB123456789
+
+
+
+ DESCRIPTION QTY UNIT AMOUNT
+
+ Platform subscription — March 1 $2,400.00 $2,400.00
+
+ Additional seats 12 $95.00 $1,140.00
+
+ Onboarding workshop 4 $210.00 $840.00
+
+ Priority support 1 $480.00 $480.00
+
+
+
+ Subtotal $4,860.00
+
+ VAT (0%) $0.00
+
+
+ Paid to date $0.00
+
+
+ Total due
+ $4,860.00
+
+
+
+ Payment by bank transfer within 30 days. Quote invoice number INV-2043 as the reference.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Your Company Page 1 of 1

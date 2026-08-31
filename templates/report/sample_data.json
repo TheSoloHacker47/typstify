@@ -1,0 +1,49 @@
+{
+  "title": "Monthly Operations Report",
+  "subtitle": "Platform reliability and usage",
+  "period": "February 2026",
+  "prepared_for": "Northwind Trading Ltd.",
+  "generated_on": "1 March 2026",
+  "metrics": [
+    { "label": "Requests", "value": "48.2M", "change": "+12%", "positive": true },
+    { "label": "p95 latency", "value": "184 ms", "change": "-9%", "positive": true },
+    { "label": "Error rate", "value": "0.043%", "change": "+0.01pp", "positive": false },
+    { "label": "Uptime", "value": "99.98%" }
+  ],
+  "table": {
+    "heading": "Traffic by service",
+    "columns": ["Service", "Requests", "p95", "Errors"],
+    "rows": [
+      ["Checkout API", "18,402,113", "142 ms", "0.02%"],
+      ["Catalogue", "14,880,204", "96 ms", "0.01%"],
+      ["Search", "9,113,776", "311 ms", "0.11%"],
+      ["Webhooks", "4,204,882", "204 ms", "0.06%"],
+      ["Reporting", "1,610,442", "884 ms", "0.09%"]
+    ]
+  },
+  "bars": {
+    "heading": "Requests by week",
+    "series": [
+      { "label": "Week 1", "value": 10.8, "display": "10.8M" },
+      { "label": "Week 2", "value": 11.9, "display": "11.9M" },
+      { "label": "Week 3", "value": 12.4, "display": "12.4M" },
+      { "label": "Week 4", "value": 13.1, "display": "13.1M" }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Summary",
+      "body": [
+        "Traffic grew 12% month on month, driven almost entirely by the checkout API following the February pricing launch. Latency improved despite the extra load, thanks to the connection-pool change shipped on the 8th.",
+        "One incident affected search for 41 minutes on 19 February. Root cause was an unbounded query introduced by a third-party integration; a query timeout has since been added."
+      ]
+    },
+    {
+      "heading": "Actions for next month",
+      "body": [
+        "Reporting remains the slowest service at a p95 of 884 ms. The team will move its aggregate queries onto the read replica and revisit the index on the events table.",
+        "Error rate rose slightly, entirely within the webhooks service. The retry policy will be changed from fixed to exponential backoff."
+      ]
+    }
+  ]
+}

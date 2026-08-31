@@ -1,0 +1,11 @@
+/.bundle/
+/pkg/
+/tmp/
+/spec/tmp/
+/spec/dummy/log/
+/spec/dummy/tmp/
+/spec/dummy/storage/
+/coverage/
+/gemfiles/*.lock
+Gemfile.lock
+.DS_Store

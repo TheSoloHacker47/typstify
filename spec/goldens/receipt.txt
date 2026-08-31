@@ -1,0 +1,56 @@
+pages: 1
+
+Receipt
+
+No payment is due Your Company
+
+
+
+RECEIPT NO. PAID ON
+RCP-8871 3 February 2026
+
+
+
+ PAID IN FULL
+ Visa ending 4242 $1,290.00
+
+
+
+RECEIVED FROM
+
+Ada Okonkwo
+Harbour Analytics
+Dublin, Ireland
+
+
+
+ DESCRIPTION QTY AMOUNT
+
+ Annual plan 1 $1,200.00
+
+ Extra storage (50 GB) 1 $90.00
+
+
+
+ Subtotal $1,290.00
+
+ Tax $0.00
+
+
+
+ Total paid $1,290.00
+
+
+
+ Keep this receipt for your records. Questions? Reply to your confirmation
+ email.
+
+
+
+
+
+
+
+
+
+Your Company Page 1 of 1

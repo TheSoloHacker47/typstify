@@ -1,0 +1,39 @@
+pages: 1
+
+C E R T I F I C AT E O F C O M P L E T I O N
+
+
+
+
+
+ Advanced Rails Performance
+
+
+
+
+ This is to certify that
+
+
+
+
+ Ada Okonkwo
+
+
+
+
+
+ has successfully completed the twelve-week programme covering query optimisation,
+
+ caching strategy, background processing and production profiling, including all
+ assessed exercises.
+
+
+
+
+
+ Priya Raman Tom Whelan
+Programme Director Lead Instructor
+
+
+
+ 18 June 2026· Certificate no. CRT-00412
