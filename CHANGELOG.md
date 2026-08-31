@@ -38,8 +38,8 @@ First release.
 
 - `on_warning` does not fire for warnings from a **successful** compile. The `typst` binding
   discards them; it only formats warnings into the message when compilation fails. The hook
-  works for failure-path warnings and for this gem's own font check. Upstream issue:
-  <https://github.com/actsasflinn/typst-rb/issues>.
+  works for failure-path warnings and for this gem's own font check. Fix opened upstream:
+  [actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10).
 - `package_cache` is effective on Linux, where the platform data directory follows
   `XDG_DATA_HOME`. macOS uses a fixed location that no environment variable redirects.
 - Ruby threads do not speed up rendering: the binding holds the GVL through compilation. Use

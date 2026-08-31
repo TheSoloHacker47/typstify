@@ -175,7 +175,8 @@ The `typst` binding this gem depends on discards the compiler's warnings when co
 **succeeds** — it only formats them into the message when compilation fails. So `on_warning`
 fires for warnings that accompany a compile error, and for the font check this gem performs
 itself, but not yet for arbitrary success-path warnings. There is nothing to listen to until
-that changes upstream; the PR is linked from [CHANGELOG.md](https://github.com/TheSoloHacker47/typstify/blob/main/CHANGELOG.md). Rather than ship an
+that changes upstream, so the fix is in flight there:
+[actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10). Rather than ship an
 option that quietly never fires, the missing-font case — the one that actually bites people —
 is checked here, before the compiler runs.
 

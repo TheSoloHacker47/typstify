@@ -19,9 +19,11 @@ still generates. It just is not the document you designed.
 ### What this gem does about it
 
 Typst emits a warning for an unknown family and carries on. The `typst` binding discards
-warnings when compilation succeeds, so there is nothing for us to forward. Instead, before each
-compile, `typstify` reads the `font: "…"` declarations out of your template and its `shared/`
-partials and resolves each family against the fonts it can actually see — parsing the family
+warnings when compilation succeeds, so there is nothing for us to forward — a fix for that is
+open upstream at [actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10).
+Meanwhile, before each compile, `typstify` reads the `font: "…"` declarations out of your
+template and its `shared/` partials and resolves each family against the fonts it can actually
+see — parsing the family
 name out of every `.ttf`/`.otf`/`.ttc` on the search path.
 
 An unresolved family raises `Typstify::FontMissingError` when `strict_fonts` is on (development

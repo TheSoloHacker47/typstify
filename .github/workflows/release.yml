@@ -135,9 +135,26 @@ jobs:
       - name: What is about to be published
         run: ls -lh pkg/
 
+      # Re-running a release, or tagging after a manual push, should be a
+      # no-op rather than a red X.
+      - name: Skip if this version is already on RubyGems
+        id: published
+        run: |
+          version="$(ruby -Ilib -e 'require "typstify/version"; print Typstify::VERSION')"
+          if curl -sf "https://rubygems.org/api/v1/versions/typstify.json" \
+             | ruby -rjson -e 'exit JSON.parse($stdin.read).any? { |v| v["number"] == ARGV[0] } ? 0 : 1' "$version"
+          then
+            echo "typstify $version is already published; nothing to push"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: rubygems/configure-rubygems-credentials@v2.1.0
+        if: steps.published.outputs.skip == 'false'
 
       - run: gem push pkg/typstify-*.gem
+        if: steps.published.outputs.skip == 'false'
 
       - name: Wait for RubyGems to index it
         run: |
