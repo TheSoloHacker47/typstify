@@ -1,0 +1,131 @@
+name: Upstream binding watch
+
+# typst-rb 0.15.1.6 returns compiler warnings from a successful compile
+# (actsasflinn/typst-rb#10). This gem's `on_warning` already forwards them, but
+# the behaviour stays dormant until that version reaches RubyGems — at the time
+# of writing it is bumped in the upstream gemspec and not yet published.
+#
+# This job watches for it, proves the suite still passes against it, and opens
+# one issue when it lands. A reminder with evidence attached, not an automatic
+# release.
+
+on:
+  schedule:
+    # 07:00 UTC daily. Nothing here is urgent to the hour.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: upstream-binding
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  # The first typst release that returns warnings from a successful compile.
+  WANTED: "0.15.1.6"
+
+jobs:
+  check:
+    name: Check RubyGems for a warnings-capable typst
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Ask RubyGems for the newest typst
+        id: upstream
+        run: |
+          set -euo pipefail
+          latest="$(ruby -rnet/http -rjson -e '
+            body = Net::HTTP.get(URI("https://rubygems.org/api/v1/versions/typst.json"))
+            numbers = JSON.parse(body).reject { |v| v["prerelease"] }.map { |v| Gem::Version.new(v["number"]) }
+            print numbers.max.to_s
+          ')"
+          echo "latest typst on rubygems: $latest (wanted >= $WANTED)"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          if ruby -e 'exit Gem::Version.new(ARGV[0]) >= Gem::Version.new(ARGV[1]) ? 0 : 1' "$latest" "$WANTED"; then
+            echo "shipped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "shipped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Nothing to do yet
+        if: steps.upstream.outputs.shipped == 'false'
+        run: echo "typst ${{ steps.upstream.outputs.latest }} is below $WANTED — still waiting."
+
+      # Do not merely announce it: prove the gem works against it, and prove the
+      # feature actually switches on. An issue that says "upgrade" with neither
+      # is a to-do, not a finding.
+      - name: Run the suite against the new binding
+        if: steps.upstream.outputs.shipped == 'true'
+        id: verify
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          bundle update typst
+          bundle exec ruby -e '
+            require "typstify"
+            version = Gem.loaded_specs["typst"].version
+            abort "typst #{version} does not expose Document#warnings" unless Typstify::Adapter.warnings_supported?
+            puts "capability detected on typst #{version}"
+          '
+          bundle exec rspec
+          bundle exec rubocop --parallel
+
+      - name: Open one issue, or leave the existing one alone
+        if: steps.upstream.outputs.shipped == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LATEST: ${{ steps.upstream.outputs.latest }}
+          VERIFIED: ${{ steps.verify.outcome }}
+        run: |
+          set -euo pipefail
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+                        --label upstream-binding --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "issue #$existing is already open; not filing another"
+            exit 0
+          fi
+
+          gh label create upstream-binding --color 0e8a16 \
+            --description "Waiting on, or acting on, a typst-rb release" 2>/dev/null || true
+
+          if [ "$VERIFIED" = "success" ]; then
+            verdict="The suite, RuboCop and the capability check all pass against it. Ready to release."
+          else
+            verdict="**The suite did not pass against it.** Read the run linked below before releasing."
+          fi
+
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          {
+            echo "\`typst\` **$LATEST** is published — the first release carrying"
+            echo "[actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10):"
+            echo "compiler warnings returned from a *successful* compile."
+            echo
+            echo "\`on_warning\` already forwards them. The capability is detected at runtime, so no"
+            echo "code has to change for it to start working — what is left is releasing it."
+            echo
+            echo "$verdict"
+            echo
+            echo "### To release"
+            echo
+            echo "1. Move the Unreleased entries in \`CHANGELOG.md\` into \`## [0.2.0]\`, and update the link references at the bottom."
+            echo "2. Bump \`Typstify::VERSION\` to \`0.2.0\`."
+            echo "3. Consider whether the README's binding support table should now lead with the new behaviour."
+            echo "4. \`git tag -a v0.2.0 -m \"typstify 0.2.0\" && git push origin main v0.2.0\`"
+            echo
+            echo "Verification run: $run_url"
+            echo
+            echo "<sub>Filed by the upstream-binding watch. Close it if you would rather not release yet — it will not be re-filed while it is open.</sub>"
+          } > issue-body.md
+
+          gh issue create --repo "$GITHUB_REPOSITORY" --label upstream-binding \
+            --title "typst $LATEST is on RubyGems — cut typstify 0.2.0" \
+            --body-file issue-body.md
