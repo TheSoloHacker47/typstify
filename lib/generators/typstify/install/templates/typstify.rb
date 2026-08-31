@@ -35,8 +35,9 @@ Typstify.configure do |c|
   # Defaults to true in development and test, false in production.
   # c.strict_fonts = Rails.env.local?
 
-  # Where warnings go. See the README for what this currently does and does not
-  # catch — the compiler binding drops warnings on a successful compile.
+  # Where warnings go. On typst >= 0.15.1.6 this receives every compiler
+  # warning; older bindings dropped the ones from a successful compile. See the
+  # README table.
   # c.on_warning = lambda do |warnings, template|
   #   Rails.logger.warn("[typstify] #{template}: #{warnings.join("; ")}")
   # end

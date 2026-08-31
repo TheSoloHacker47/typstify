@@ -18,10 +18,11 @@ still generates. It just is not the document you designed.
 
 ### What this gem does about it
 
-Typst emits a warning for an unknown family and carries on. The `typst` binding discards
-warnings when compilation succeeds, so there is nothing for us to forward — a fix for that is
-open upstream at [actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10).
-Meanwhile, before each compile, `typstify` reads the `font: "…"` declarations out of your
+Typst emits a warning for an unknown family and carries on. On `typst` 0.15.1.6 and newer that
+warning reaches your `on_warning` hook ([actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10));
+older bindings discarded it on a successful compile, so there was nothing to forward.
+
+Either way, and *before* each compile, `typstify` reads the `font: "…"` declarations out of your
 template and its `shared/` partials and resolves each family against the fonts it can actually
 see — parsing the family
 name out of every `.ttf`/`.otf`/`.ttc` on the search path.

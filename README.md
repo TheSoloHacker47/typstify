@@ -169,16 +169,22 @@ Typstify.configure do |c|
 end
 ```
 
-### One honest caveat about `on_warning`
+### What `on_warning` catches, and on which binding
 
-The `typst` binding this gem depends on discards the compiler's warnings when compilation
-**succeeds** — it only formats them into the message when compilation fails. So `on_warning`
-fires for warnings that accompany a compile error, and for the font check this gem performs
-itself, but not yet for arbitrary success-path warnings. There is nothing to listen to until
-that changes upstream, so the fix is in flight there:
-[actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10). Rather than ship an
-option that quietly never fires, the missing-font case — the one that actually bites people —
-is checked here, before the compiler runs.
+The `typst` binding used to discard the compiler's warnings whenever compilation **succeeded**
+— they were only formatted into the message when compilation failed. That is fixed upstream in
+[actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10), released in
+**typst 0.15.1.6**.
+
+| binding | what `on_warning` receives |
+|---|---|
+| typst ≥ 0.15.1.6 | every compiler warning, from successful and failed compiles alike, with the workspace path rewritten to your template's name |
+| typst < 0.15.1.6 | warnings that accompanied a compile *error*, plus this gem's own missing-font check |
+
+The gem detects which it has by capability, not by version string, so upgrading the binding is
+all you need to do. The font pre-check stays either way: it runs *before* the compiler, which
+is what lets `strict_fonts` fail without paying for a compile. When the binding can report the
+same thing itself, the pre-check keeps quiet rather than saying it twice.
 
 ## Errors
 

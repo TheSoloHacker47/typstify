@@ -41,6 +41,7 @@ module Typstify
     def reset!
       @config = Config.new
       Fonts.reset!
+      Adapter.reset_capability_cache!
       config
     end
 

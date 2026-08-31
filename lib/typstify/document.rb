@@ -42,7 +42,11 @@ module Typstify
       ErbPipeline.render(raw, data: @data, assigns: @assigns)
     end
 
-    # Stands in for the compiler warning we cannot see yet. Checks the main
+    # Resolve the fonts a template names before handing it to the compiler.
+    #
+    # Two reasons this stays even now that the binding reports warnings itself
+    # (typst >= 0.15.1.6): it can raise *before* a compile rather than after
+    # one, and it is the only signal at all on older bindings. Checks the main
     # template and everything copied alongside it, because a missing family is
     # just as likely to be declared in shared/branding.typ.
     def check_fonts(workspace)
@@ -52,7 +56,17 @@ module Typstify
       missing = Fonts.missing(combined, @config.font_paths, include_system: include_system)
       return if missing.empty?
 
-      raise FontMissingError.new(missing, Fonts.search_paths(@config.font_paths)) if @config.strict_fonts
+      if @config.strict_fonts
+        raise FontMissingError.new(
+          missing,
+          Fonts.search_paths(@config.font_paths, include_system: include_system)
+        )
+      end
+
+      # Not strict, so this is a warning. Leave it to the compiler when the
+      # compiler can speak for itself — its diagnostic carries the line and
+      # column, and reporting both would say the same thing twice.
+      return if Adapter.warnings_supported?
 
       @config.on_warning&.call(
         missing.map { |family| "unknown font family: #{family.inspect} (substituted)" },

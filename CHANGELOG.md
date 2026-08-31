@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `on_warning` now receives every compiler warning, including those from a **successful**
+  compile, when running against `typst` 0.15.1.6 or newer. The upstream fix
+  ([actsasflinn/typst-rb#10](https://github.com/actsasflinn/typst-rb/pull/10)) has been merged.
+  Support is detected by capability rather than by version string, so older bindings keep the
+  previous behaviour and no dependency floor moves.
+
+### Changed
+
+- The missing-font pre-check no longer emits a warning of its own when the binding can report
+  the same thing with a line and column. It still runs, and still raises under `strict_fonts`
+  before the compiler is invoked.
+- `FontMissingError` lists only the directories the compiler will actually search: with
+  `ignore_system_fonts` on, the system font directories are no longer named as "searched".
+
 ## [0.1.0] — 2026-08-31
 
 First release.
