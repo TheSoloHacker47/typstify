@@ -1,0 +1,31 @@
+name: Template proposal
+description: A document type the starter pack should ship
+labels: ["template pack"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Document type
+      placeholder: "packing slip, purchase order, delivery note, statement"
+    validations: { required: true }
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Who generates this from Rails, and why
+      description: The starter pack is for documents many applications need, not for one team's layout.
+    validations: { required: true }
+
+  - type: textarea
+    id: fields
+    attributes:
+      label: What is on it
+      description: The fields it needs, which become sample_data.json.
+    validations: { required: true }
+
+  - type: checkboxes
+    id: contributing
+    attributes:
+      label: Contributing
+      options:
+        - label: I am willing to write it (see CONTRIBUTING.md — template, sample data, golden, preview)

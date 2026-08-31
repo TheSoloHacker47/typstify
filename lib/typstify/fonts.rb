@@ -54,13 +54,13 @@ module Typstify
     end
 
     # Families the compiler will be able to find, downcased for comparison.
-    def available_families(font_paths)
-      key = font_paths.map(&:to_s).sort
+    def available_families(font_paths, include_system: true)
+      key = [font_paths.map(&:to_s).sort, include_system]
       @available ||= {}
       @available[key] ||= begin
         families = EMBEDDED.dup
-        (font_paths.map(&:to_s) + SYSTEM_DIRECTORIES).each do |directory|
-          families.concat(families_in(File.expand_path(directory)))
+        search_paths(font_paths, include_system: include_system).each do |directory|
+          families.concat(families_in(directory))
         end
         families.map(&:downcase).uniq.to_set
       end
@@ -72,13 +72,18 @@ module Typstify
     end
 
     # @return [Array<String>] families the template wants and nothing provides
-    def missing(source, font_paths)
-      available = available_families(font_paths)
+    def missing(source, font_paths, include_system: true)
+      available = available_families(font_paths, include_system: include_system)
       declared_families(source).reject { |family| available.include?(family.downcase) }
     end
 
-    def search_paths(font_paths)
-      font_paths.map(&:to_s) + SYSTEM_DIRECTORIES.map { |d| File.expand_path(d) }
+    # The directories the compiler will look in. Kept in step with
+    # `ignore_system_fonts`, so the check never calls a family available that
+    # the compiler will not actually reach for.
+    def search_paths(font_paths, include_system: true)
+      paths = font_paths.map { |path| File.expand_path(path.to_s) }
+      paths += SYSTEM_DIRECTORIES.map { |directory| File.expand_path(directory) } if include_system
+      paths
     end
 
     def families_in(directory)

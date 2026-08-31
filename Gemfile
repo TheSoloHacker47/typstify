@@ -20,7 +20,6 @@ rails_requirement =
 gem "rails", *rails_requirement
 
 group :development, :test do
-  gem "appraisal", "~> 2.5"
   gem "pdf-reader", "~> 2.12"
   gem "rake", "~> 13.0"
   gem "rspec-rails", "~> 7.0"

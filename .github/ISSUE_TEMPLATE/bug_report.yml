@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work the way the README says it does
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the full error, if there is one.
+    validations: { required: true }
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations: { required: true }
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: >
+        The smallest template and data that shows it. A `.typ` file and the hash you passed to
+        `data:` is usually enough.
+      render: ruby
+    validations: { required: true }
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: typstify, Rails, Ruby, OS, and the `typst` gem version
+      placeholder: "typstify 0.1.0, Rails 8.0.5, Ruby 3.3.0, Ubuntu 24.04, typst 0.15.1.5"
+    validations: { required: true }
+
+  - type: checkboxes
+    id: fonts
+    attributes:
+      label: Before you file
+      options:
+        - label: If this is about how the PDF looks, I have checked whether a font is being substituted (`c.strict_fonts = true`)
+        - label: If this is about a security property, I have read SECURITY.md and this is not the ERB-without-`typ()` case

@@ -30,8 +30,9 @@ module Typstify
       Typstify.apply_package_cache!
     end
 
-    rake_tasks do
-      load File.expand_path("../tasks/typstify.rake", __dir__)
-    end
+    # No `rake_tasks do load … end` here: Rails::Engine already loads every
+    # .rake file under the engine's lib/tasks. Loading it again re-opens the
+    # task and Rake *appends* the second body, so `typstify:preview` would
+    # render — and announce — the same PDF twice.
   end
 end

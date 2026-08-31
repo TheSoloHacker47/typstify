@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - run: bundle exec rubocop --parallel
+
+  test:
+    name: ruby ${{ matrix.ruby }} / rails ${{ matrix.rails }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["3.1", "3.2", "3.3", "3.4"]
+        rails: ["7.1", "7.2", "8.0", "8.1"]
+        exclude:
+          # Rails 8.0+ requires Ruby 3.2.
+          - { ruby: "3.1", rails: "8.0" }
+          - { ruby: "3.1", rails: "8.1" }
+          # Rails 8.1's actionview calls `yield(*, **)` inside a block, which
+          # only parses on Ruby 3.4+ — despite the gem declaring >= 3.2. This
+          # is an upstream mismatch, not a choice; see the Gemfile.
+          - { ruby: "3.2", rails: "8.1" }
+          - { ruby: "3.3", rails: "8.1" }
+    env:
+      RAILS_VERSION: ${{ matrix.rails }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle exec rspec
+
+  macos:
+    name: macOS (ruby 3.3 / rails 8.0)
+    runs-on: macos-latest
+    env:
+      RAILS_VERSION: "8.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      # One combination only: the `typst` gem ships a prebuilt arm64-darwin
+      # binary, so this proves the platform works without paying for the whole
+      # matrix twice. The package_cache specs skip themselves here on purpose —
+      # macOS ignores XDG_DATA_HOME. See docs/fonts-and-docker.md.
+      - run: bundle exec rspec
+
+  offline:
+    name: vendored packages, no package registry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      # T9 is the claim that a vendored Typst Universe package resolves with no
+      # network. Blackholing the registry proves it, and is safer than dropping
+      # all egress — which would also cut the runner off from GitHub and hang
+      # the job rather than fail it.
+      - name: Blackhole packages.typst.org
+        run: echo "0.0.0.0 packages.typst.org" | sudo tee -a /etc/hosts
+
+      - name: The registry really is unreachable
+        run: |
+          if curl --max-time 10 -sSf https://packages.typst.org/ >/dev/null 2>&1; then
+            echo "::error::packages.typst.org is still reachable; this job proves nothing"
+            exit 1
+          fi
+          echo "packages.typst.org is unreachable, as intended"
+
+      - run: bundle exec rspec spec/unit/package_cache_spec.rb --format documentation
+
+  fresh-app:
+    name: README quickstart in a new Rails app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: typstify }
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: false
+
+      # The definition of done says the quickstart works verbatim in a fresh
+      # app. Asserting it here means it keeps working.
+      - name: rails new, install, generate, render
+        run: |
+          set -euo pipefail
+          gem install rails -v "~> 8.0.0" --no-document
+          rails new demo --skip-git --skip-test --skip-system-test --skip-bootsnap --minimal
+          cd demo
+          bundle add typstify --path ../typstify
+          bin/rails generate typstify:install
+          bin/rails generate typstify:template invoice
+          TYPSTIFY_OPEN=0 bundle exec rake "typstify:preview[invoices/show]"
+          test -s tmp/previews/invoices-show.pdf
+          head -c 5 tmp/previews/invoices-show.pdf | grep -q '%PDF-'
+          echo "preview task produced a valid PDF"
+
+      # ...and the controller path, which is what the README actually shows.
+      - name: "render pdf: through a real request"
+        working-directory: demo
+        run: |
+          set -euo pipefail
+          cat > app/controllers/invoices_controller.rb <<'RUBY'
+          class InvoicesController < ApplicationController
+            def show
+              render pdf: "invoices/show",
+                     data: JSON.parse(File.read(Rails.root.join("app/views/invoices/sample_data.json"),
+                                                encoding: "UTF-8")),
+                     filename: "invoice-#{params[:id]}.pdf",
+                     disposition: :inline
+            end
+          end
+          RUBY
+          cat > config/routes.rb <<'RUBY'
+          Rails.application.routes.draw do
+            get "/invoices/:id", to: "invoices#show"
+          end
+          RUBY
+          cat > check.rb <<'RUBY'
+          require "action_dispatch/testing/integration"
+          session = ActionDispatch::Integration::Session.new(Rails.application)
+          session.host = "localhost"
+          session.get "/invoices/INV-2043"
+          abort "status #{session.response.status}" unless session.response.status == 200
+          abort "type #{session.response.media_type}" unless session.response.media_type == "application/pdf"
+          abort "disposition" unless session.response.headers["Content-Disposition"].to_s.include?("inline")
+          abort "not a PDF" unless session.response.body.start_with?("%PDF-")
+          puts "render pdf: returned #{session.response.body.bytesize} bytes of PDF"
+          RUBY
+          bin/rails runner check.rb

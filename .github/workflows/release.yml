@@ -1,0 +1,166 @@
+name: Release
+
+# Publishes to RubyGems via Trusted Publishing (OIDC — no API key stored here).
+#
+# Triggered by pushing a version tag:
+#
+#     git tag -a v0.1.0 -m "typstify 0.1.0" && git push origin v0.1.0
+#
+# Run it with workflow_dispatch and dry_run first to build the gem without
+# publishing it. See docs/RELEASING.md for the one-time RubyGems setup.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build the gem but do not publish"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Never publish a tag that does not pass its own suite.
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - run: bundle exec rspec
+      - run: bundle exec rubocop --parallel
+
+      - name: Tag must match Typstify::VERSION
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(ruby -Ilib -e 'require "typstify/version"; print Typstify::VERSION')"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match Typstify::VERSION $version"
+            exit 1
+          fi
+          echo "tag $GITHUB_REF_NAME matches Typstify::VERSION $version"
+
+  build:
+    name: Build the gem
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - run: bundle exec rake build
+
+      # A pure-Ruby gem, but the file list is hand-written, so prove the
+      # packaged artifact actually contains the fonts and templates it needs.
+      - name: The packaged gem must be complete
+        run: |
+          set -euo pipefail
+          gem_file="$(ls pkg/typstify-*.gem)"
+          contents="$(tar -xOf "$gem_file" data.tar.gz | tar -tzf -)"
+          for required in \
+            "lib/typstify.rb" \
+            "lib/tasks/typstify.rake" \
+            "lib/generators/typstify/install/install_generator.rb" \
+            "lib/generators/typstify/template/template_generator.rb" \
+            "templates/shared/branding.typ" \
+            "templates/invoice/invoice.typ" \
+            "templates/invoice/sample_data.json" \
+            "fonts/inter/Inter-Regular.ttf" \
+            "fonts/inter/OFL.txt" \
+            "LICENSE"
+          do
+            grep -qx "$required" <<< "$contents" || { echo "::error::$gem_file is missing $required"; exit 1; }
+          done
+          echo "gem contains everything it needs"
+
+      - name: Install it clean and render a PDF
+        run: |
+          set -euo pipefail
+          gem install pkg/typstify-*.gem
+          cd "$(mktemp -d)"
+          ruby -e '
+            require "typstify"
+            require "fileutils"
+            FileUtils.mkdir_p("views")
+            File.write("views/probe.typ", %(#let d = json("data.json")\n= Hello #d.name))
+            Typstify.configure { |c| c.template_root = "views" }
+            pdf = Typstify.render(template: "probe", data: { name: "world" })
+            abort "not a PDF" unless pdf.start_with?("%PDF-")
+            puts "installed gem renders: #{pdf.bytesize} bytes"
+          '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gem
+          path: pkg/*.gem
+          if-no-files-found: error
+
+  publish:
+    name: Publish to RubyGems
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') && !inputs.dry_run
+    environment:
+      name: release
+      url: https://rubygems.org/gems/typstify
+    permissions:
+      contents: write
+      # Required for Trusted Publishing: this mints the short-lived OIDC token
+      # RubyGems exchanges for a scoped API key.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v4
+        with: { name: gem, path: pkg }
+
+      - name: What is about to be published
+        run: ls -lh pkg/
+
+      - uses: rubygems/configure-rubygems-credentials@v2.1.0
+
+      - run: gem push pkg/typstify-*.gem
+
+      - name: Wait for RubyGems to index it
+        run: |
+          version="$(ruby -Ilib -e 'require "typstify/version"; print Typstify::VERSION')"
+          ruby -e '
+            require "net/http"
+            require "json"
+            version = ARGV[0]
+            40.times do
+              body = Net::HTTP.get(URI("https://rubygems.org/api/v1/versions/typstify.json")) rescue nil
+              if body && JSON.parse(body).any? { |v| v["number"] == version }
+                puts "indexed #{version}"
+                exit 0
+              end
+              sleep 15
+            end
+            warn "timed out waiting for #{version} to be indexed (it may still land)"
+          ' "$version"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" pkg/*.gem \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/main/CHANGELOG.md)."

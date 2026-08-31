@@ -17,17 +17,16 @@ module Typstify
 
     # @param main_path [Pathname] the workspace's main.typ
     # @param root [Pathname] the workspace; Typst's sandbox boundary
-    # @param font_paths [Array<Pathname>]
-    # @param pdf_standards [Array<String>] e.g. ["ua-1"]
     # @param template [String] the name to show in errors
-    # @param config [Typstify::Config]
+    # @param config [Typstify::Config] supplies the fonts and the PDF standard
     # @return [String] PDF bytes, ASCII-8BIT
-    def compile_pdf(main_path:, root:, font_paths:, pdf_standards:, template:, config: Typstify.config)
+    def compile_pdf(main_path:, root:, template:, config: Typstify.config)
       document = Typst(
         main_path.to_s,
         root: root.to_s,
-        font_paths: font_paths.map(&:to_s),
-        pdf_standards: pdf_standards
+        font_paths: config.font_paths.map(&:to_s),
+        ignore_system_fonts: config.ignore_system_fonts,
+        pdf_standards: config.pdf_standards
       ).compile(:pdf)
 
       # PdfDocument#bytes is a per-page array of integer arrays; #pages packs

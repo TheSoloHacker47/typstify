@@ -20,7 +20,8 @@ module Typstify
       ua_1: "ua-1"
     }.freeze
 
-    attr_writer :template_root, :shared_dir, :font_paths, :package_cache, :on_warning, :strict_fonts
+    attr_writer :template_root, :shared_dir, :font_paths, :package_cache, :on_warning,
+                :strict_fonts, :ignore_system_fonts
 
     # Where `.typ` templates live. Also the boundary a template path may not
     # escape (see Resolver).
@@ -46,6 +47,21 @@ module Typstify
     # builds. See docs/fonts-and-docker.md for the platform caveat.
     def package_cache
       @package_cache && Pathname.new(@package_cache)
+    end
+
+    # Skip the operating system's font directories entirely and use only
+    # `font_paths` plus Typst's embedded faces.
+    #
+    # Worth knowing: scanning system fonts costs roughly 50 ms *per render*. On
+    # a styled A4 invoice on an M-series Mac, 58 ms becomes 4 ms with this on.
+    # Once you have vendored the fonts your templates name — which you should;
+    # see docs/fonts-and-docker.md — nothing on the system is being used
+    # anyway, and a slim container has no system fonts to find at all.
+    #
+    # Off by default, because turning it on changes which face a template that
+    # names "Helvetica" ends up with.
+    def ignore_system_fonts
+      @ignore_system_fonts.nil? ? false : @ignore_system_fonts
     end
 
     # nil (plain PDF), or one of PDF_STANDARDS' keys.

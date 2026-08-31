@@ -24,8 +24,6 @@ module Typstify
         Adapter.compile_pdf(
           main_path: workspace.main_path,
           root: workspace.dir,
-          font_paths: @config.font_paths,
-          pdf_standards: @config.pdf_standards,
           template: resolution.name,
           config: @config
         )
@@ -50,7 +48,8 @@ module Typstify
     def check_fonts(workspace)
       sources = [workspace.main_path, *Dir.glob(workspace.dir.join("**", "*.typ"))]
       combined = sources.uniq.map { |path| File.read(path, encoding: Encoding::UTF_8) }.join("\n")
-      missing = Fonts.missing(combined, @config.font_paths)
+      include_system = !@config.ignore_system_fonts
+      missing = Fonts.missing(combined, @config.font_paths, include_system: include_system)
       return if missing.empty?
 
       raise FontMissingError.new(missing, Fonts.search_paths(@config.font_paths)) if @config.strict_fonts

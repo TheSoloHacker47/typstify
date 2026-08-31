@@ -39,7 +39,8 @@ Gem::Specification.new do |spec|
     "fonts/**/*.{ttf,otf,txt}",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ]
   spec.require_paths = ["lib"]
 

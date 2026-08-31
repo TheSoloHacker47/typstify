@@ -11,7 +11,9 @@ module Typstify
     class TemplateGenerator < ::Rails::Generators::NamedBase
       AVAILABLE = %w[invoice receipt report certificate].freeze
 
-      source_root File.expand_path("templates", __dir__)
+      # The gem's own template pack is the source: this generator copies
+      # starter documents, it does not render ERB of its own.
+      source_root Typstify.template_pack_path.to_s
 
       class_option :path, type: :string, default: nil,
                           desc: "Where to put it, e.g. billing/invoice (default: <plural>/show)"
@@ -26,19 +28,18 @@ module Typstify
       end
 
       def copy_template
-        copy_file source_dir.join("#{name}.typ").to_s, "app/views/#{destination}.typ"
+        copy_file "#{name}/#{name}.typ", "app/views/#{destination}.typ"
       end
 
       def copy_sample_data
-        copy_file source_dir.join("sample_data.json").to_s,
+        copy_file "#{name}/sample_data.json",
                   "app/views/#{File.dirname(destination)}/sample_data.json"
       end
 
       def ensure_branding
         return if File.exist?(File.join(destination_root, "app/views/shared/branding.typ"))
 
-        copy_file Typstify.template_pack_path.join("shared", "branding.typ").to_s,
-                  "app/views/shared/branding.typ"
+        copy_file "shared/branding.typ", "app/views/shared/branding.typ"
       end
 
       def report
@@ -60,10 +61,6 @@ module Typstify
           given = options[:path]
           given.nil? || given.empty? ? "#{name}s/show" : given
         end
-      end
-
-      def source_dir
-        Typstify.template_pack_path.join(name)
       end
     end
   end

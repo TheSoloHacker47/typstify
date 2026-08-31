@@ -16,6 +16,12 @@ Typstify.configure do |c|
   # see docs/fonts-and-docker.md.
   # c.font_paths = [Rails.root.join("app/assets/fonts")]
 
+  # Skip the operating system's font directories. Once your fonts are vendored
+  # above, nothing on the system is being used and scanning for it costs about
+  # 50 ms per render: the starter invoice goes from 58 ms to 4 ms. Off by
+  # default because it changes which face a template naming "Helvetica" gets.
+  # c.ignore_system_fonts = true
+
   # Vendored Typst Universe packages, for builds with no network.
   # Effective on Linux (so: in your Docker image); see the same doc for why.
   # c.package_cache = Rails.root.join("vendor/typst_packages")
