@@ -1,8 +1,23 @@
-# AGENT BRIEF — Build the `typst-rails` gem (Rails-native PDF generation on the Typst engine)
+# The original build brief
 
-> **Audience:** an AI coding agent (Claude Code / Cursor). Follow this document top to bottom.
-> **Owner:** Nikhil Nelson (@SoloHacker47). Ask before changing the public API, template pack scope, or security model.
-> **License:** MIT. **Stack:** pure Ruby Rails engine; delegates compilation to the existing `typst` binding gem.
+> **Historical document.** This is the specification typstify was built from, written
+> before any code existed and preserved unedited. It is published because the brief,
+> not the code, was the part that took the thinking.
+>
+> **It does not describe what shipped.** Read it as a record of intent:
+>
+> - The gem is called **typstify**. This document calls it `typst-rails` throughout,
+>   because the name was still open when it was written. See §1.
+> - Paths, namespaces and the directory tree in §5 use the old name.
+> - Some decisions were revised once the internals were measured. `on_warning` in
+>   particular does not behave as §3 assumes, for reasons documented in the README
+>   and CHANGELOG under *Known limitations*.
+>
+> For what typstify actually does today, read the [README](../README.md) and
+> [CHANGELOG](../CHANGELOG.md). Those are authoritative; this is not.
+
+**License:** MIT. **Stack:** pure Ruby Rails engine, delegating compilation to the
+existing `typst` binding gem.
 
 ---
 
@@ -25,7 +40,7 @@ Positioning (this drives every doc you write):
   `.bytes` / `.write`). If an option we need (fonts dir, root dir, PDF standard) is missing,
   open an upstream PR — do not fork silently.
 - Typst language + data loading (`json()`, `csv()`): https://typst.app/docs/
-- Typst's own automated-PDF-generation pitch (mine it for docs language):
+- Typst's own automated-PDF-generation pitch, for background on the problem space:
   https://typst.app/blog/2025/automated-generation/
 - Rails renderer/template-handler APIs: `ActionController::Renderers.add`,
   `ActionView::Template.register_template_handler`, `Rails::Engine`.
@@ -33,15 +48,17 @@ Positioning (this drives every doc you write):
 
 ---
 
-## 1. Naming — verify before anything else
+## 1. Naming
 
-Primary: **`typst-rails`** (require path `typst/rails` is awkward — use gem name `typst-rails`,
-require `typst_rails`, namespace `TypstRails`). Check https://rubygems.org/gems/typst-rails is
-404 and `gem search ^typst-rails$ --remote` is empty. Also confirm the `typst` gem authors
-haven't announced an official Rails layer (search their repo issues) — if they have, coordinate
-instead of colliding.
+The brief opened on the name, because everything downstream depends on it: the require
+path, the namespace, the directory layout in §5.
 
-Fallbacks in order: `typstify`, `railstype`, `typst_pdf_rails`.
+`typst-rails` was the first choice, with `typstify` next. Two checks had to pass before
+committing to either: that the name was free on RubyGems, and that the authors of the
+`typst` binding gem had not announced an official Rails layer of their own. Colliding
+with upstream, or forcing them to rename around us, was not worth a slightly better name.
+
+**`typstify` is what shipped**, and the rest of this document predates that decision.
 
 ---
 
