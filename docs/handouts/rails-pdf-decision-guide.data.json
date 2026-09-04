@@ -1,0 +1,86 @@
+{
+  "title": "The Rails PDF Stack Decision Guide",
+  "subtitle": "Four real options, what each is actually good at, and how to tell which one you want.",
+  "rows": [
+    {
+      "name": "wicked_pdf / pdfkit",
+      "engine": "wkhtmltopdf",
+      "speed": "slow",
+      "image": "small",
+      "access": "no",
+      "maintained": "archived 2023",
+      "flag": "bad",
+      "access_tone": "bad",
+      "maint_tone": "bad"
+    },
+    {
+      "name": "grover / ferrum",
+      "engine": "headless Chrome",
+      "speed": "slow",
+      "image": "+ hundreds of MB",
+      "access": "no",
+      "maintained": "yes",
+      "flag": "warn",
+      "access_tone": "bad",
+      "maint_tone": "good"
+    },
+    {
+      "name": "prawn",
+      "engine": "its own Ruby DSL",
+      "speed": "fast",
+      "image": "small",
+      "access": "partial",
+      "maintained": "yes",
+      "flag": "ok",
+      "access_tone": "warn",
+      "maint_tone": "good"
+    },
+    {
+      "name": "typstify",
+      "engine": "Typst (Rust)",
+      "speed": "about 4 ms",
+      "image": "small",
+      "access": "yes, PDF/UA-1",
+      "maintained": "yes",
+      "flag": "good",
+      "access_tone": "good",
+      "maint_tone": "good"
+    }
+  ],
+  "picks": [
+    {
+      "name": "Pick wicked_pdf if",
+      "body": "You already have HTML templates that work and rewriting them is not worth it this quarter. Be clear-eyed: wkhtmltopdf was archived in 2023, so you are accepting an unmaintained WebKit fork with no security fixes. That is a real trade, and sometimes it is the right one."
+    },
+    {
+      "name": "Pick a Chrome-based gem if",
+      "body": "Your document genuinely needs a browser. JS-rendered charts, a design system you cannot port, web fonts with complex shaping. Nothing else here runs JavaScript. You pay for it in image size, memory and cold starts, but you are buying something real."
+    },
+    {
+      "name": "Pick prawn if",
+      "body": "You want precise coordinate control, or you are drawing rather than laying out a document. Prawn is mature, pure Ruby, and genuinely better than everything else here when you need to place things at exact points. The cost is that every layout is code."
+    },
+    {
+      "name": "Pick typstify if",
+      "body": "You are starting fresh or willing to rewrite 2 to 5 PDF views. You want millisecond renders, no browser in your image, and tagged PDF/UA-1 output for accessibility requirements. The cost is the rewrite: there is no HTML to Typst converter and there will not be one."
+    }
+  ],
+  "caveats": [
+    "typstify is Rails only. Sinatra, Hanami and plain Rack are not supported.",
+    "There is no HTML to Typst converter. You rewrite each PDF view by hand. Most apps have 2 to 5 of them.",
+    "Ruby threads will not speed up rendering. The binding holds the GVL, so use processes for throughput.",
+    "The 4 ms figure needs ignore_system_fonts turned on. The default is 58 ms because Typst scans OS font directories on every render."
+  ],
+  "footer_left": "github.com/TheSoloHacker47/typstify",
+  "footer_right": "Generated with typstify. MIT.",
+  "migration": {
+    "title": "If you are migrating, what it actually costs",
+    "steps": [
+      "Write the serializer first. Everything the view interpolates becomes a key, formatted in Ruby.",
+      "Port the page frame. Paper, margins, header and footer become one set page(...) call.",
+      "Port the type, and vendor the font. A family your image cannot supply is the classic production surprise.",
+      "Port the body. Tables and grids map almost one to one. A real invoice went from 82 lines of ERB to 55 of Typst."
+    ],
+    "note": "Most applications have two to five PDF views. Each is a sitting, not a project."
+  }
+}
